@@ -1,0 +1,54 @@
+import axios from 'axios';
+import {getToken} from './storage';
+import {errorAlert} from '../components/alert';
+// import {getToken} from './storage';
+
+let Rest = axios.create({
+  baseURL: 'https://api.famepilot.com',
+});
+
+Rest.interceptors.request.use(
+  async config => {
+    const authToken = await getToken();
+    if (authToken) {
+      config.headers.Authorization =
+        config.headers.Authorization || `Token ${authToken}`;
+    }
+    return config;
+  },
+  (error: any) => Promise.reject(error),
+);
+
+Rest.interceptors.response.use(
+  (response: any) => {
+    return response;
+  },
+  (error: any) => {
+    console.log('error.config', error.config);
+    switch (error.response.status) {
+      case 401 || 403:
+        errorAlert({message: 'Unauthorized'});
+        break;
+
+      case 402:
+        errorAlert({message: 'Payment is required'});
+        break;
+
+      case 404:
+        errorAlert({message: 'Not Found'});
+        break;
+
+      case 500:
+        errorAlert({message: 'Server Error'});
+        break;
+
+      default:
+        const errorMessages: any = Object.values(error?.response?.data)[0];
+        const message: string = errorMessages[0] as string;
+        errorAlert({message});
+    }
+    return Promise.reject(error);
+  },
+);
+
+export default Rest;
