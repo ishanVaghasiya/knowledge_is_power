@@ -1,0 +1,12 @@
+knowledge_is_powernpm install -g @ionic/cli native-run cordova-res
+ionic start project_name tabs --type=angular --capacitor
+cd project_name
+npm install @capacitor/camera @capacitor/preferences @capacitor/filesystem
+ionic serve
+then
+ionic build
+ionic capacitor build android
+Android studio :
+open android folder in android studio
+click menu : Build > Build Bundle > Build APKs
+'app-debug.apk' was generated on 'android/app/build/outputs/apk/debug' then install that into mobile
