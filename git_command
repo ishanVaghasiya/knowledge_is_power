@@ -1,0 +1,65 @@
+Git Command.
+
+- git remote add origin `<url>`
+
+- git add .
+- git commit -a -m 'messsage'
+- git push origin master
+
+undo pull:
+----------
+- git reset --hard HEAD@{1}
+
+Last commit Revert:
+----------------------
+1. With Staged files:
+- git reset --soft HEAD~1
+
+2. With Un-Staged files:
+- git reset --hard HEAD~1
+
+Git Rebase:-
+------------
+- git rebase branch (from which do you want)
+- git rebase --continue (to continue rebasing if there is already opened any directory)
+- git rebase --abort (to abort it)
+- git rebase --skip (to skip it)
+
+
+set git upstream with origin 
+------------------------------
+- git remote add upstream https://gitlab.isdatatower.com/user-interface/vi.git
+
+- git fetch upstream
+
+- git rebase upstream/master
+
+- git push origin master --force
+
+---------------
+Stash Related:-
+---------------
+
+- git stash -u (to stash all)
+- git stash list
+- git stash apply stash@{number which you want to apply}
+
+PULL
+1)  undo last pull
+git reset --hard HEAD@{1}
+
+PUSH
+1) revert last commit
+ git reset HEAD~
+2) With Staged files:
+git reset --soft HEAD~1
+
+
+How do you recover a deleted branch that was not merged
+--git reflog
+--git checkout -b preprod HEAD@{4}
+
+
+Delete the branch
+-git branch -D preprod
+-git push origin --delete quickfix
