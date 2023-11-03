@@ -1,0 +1,158 @@
+import debounce from 'lodash.debounce';
+import {useEffect, useMemo, useRef} from 'react';
+
+const useDebounce = (callback: Function) => {
+  const ref: any = useRef();
+
+  useEffect(() => {
+    ref.current = callback;
+  }, [callback]);
+
+  const debouncedCallback = useMemo(() => {
+    const func = () => {
+      ref.current?.();
+    };
+
+    return debounce(func, 1000);
+  }, []);
+
+  return debouncedCallback;
+};
+
+export default useDebounce;
+
+
+
+
+----------------- use case --------------------
+import React, {memo, useState} from 'react';
+import {FPTextInput, FPView} from './react-native';
+import {StyleProp, StyleSheet, TextStyle, ViewStyle} from 'react-native';
+import Icon from './Icon';
+import {iconList} from '../assets/Icon';
+import useDebounce from '../utils/hooks/useDebounce';
+import {globalColor} from '../utils/theme';
+
+interface Props {
+  onSearch: (value: string) => any;
+  onCancel: () => any;
+  onSort?: (value: boolean) => any;
+  isSorting?: boolean;
+  inputStyle?: StyleProp<TextStyle>;
+  containerStyle?: StyleProp<ViewStyle>;
+}
+
+const SearchBar: React.FC<Props> = props => {
+  const {
+    onSearch,
+    onCancel,
+    inputStyle = {},
+    onSort,
+    containerStyle,
+    isSorting = true,
+  } = props;
+  const [searchText, setSearchText] = useState('');
+  const [isSort, setIsSort] = useState(false);
+
+  const handleSearch = (data: string) => {
+    setSearchText(() => data);
+    debouncedRequest();
+  };
+
+  const handleCancel = () => {
+    setSearchText(() => '');
+    onCancel();
+  };
+
+  const debouncedRequest = useDebounce(() => {
+    onSearch(searchText);
+  });
+
+  const handleSort = (value: boolean) => {
+    setIsSort(preValue => !preValue);
+    onSort && onSort(!value);
+  };
+
+  return (
+    <FPView style={[styles.container, containerStyle]}>
+      <FPView style={styles.searchBarWrapper}>
+        <Icon
+          source={iconList.search}
+          style={styles.search}
+          tintColor={globalColor.lightGrayishBlue}
+        />
+        <FPTextInput
+          placeholder="Search..."
+          value={searchText}
+          onChangeText={value => handleSearch(value)}
+          style={[styles.input, inputStyle]}
+        />
+        {searchText ? (
+          <Icon
+            touchable={true}
+            onPress={handleCancel}
+            source={iconList.cancel}
+            style={styles.cancel}
+            tintColor={globalColor.lightGrayishBlue}
+          />
+        ) : null}
+      </FPView>
+      {isSorting && (
+        <Icon
+          rounded
+          source={iconList.sort}
+          style={styles.sort}
+          onPress={() => handleSort(isSort)}
+          touchable={true}
+          variant={isSort ? 'filled' : 'outline'}
+          height={20}
+          width={20}
+          tintColor={isSort ? globalColor.white : globalColor.primary.blue}
+        />
+      )}
+    </FPView>
+  );
+};
+
+export default memo(SearchBar);
+
+const styles = StyleSheet.create({
+  container: {
+    flexDirection: 'row',
+    width: '100%',
+    alignItems: 'center',
+    gap: 10,
+  },
+  searchBarWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    position: 'relative',
+    backgroundColor: globalColor.secondary.surface,
+    borderRadius: 50,
+    paddingHorizontal: 10,
+    flex: 1,
+  },
+  input: {
+    flex: 1,
+    marginBottom: 0,
+    paddingHorizontal: 34,
+    zIndex: -1,
+    borderWidth: 0,
+  },
+  iconContainer: {
+    paddingHorizontal: 10,
+  },
+  search: {
+    position: 'absolute',
+    top: -12,
+    left: 5,
+  },
+  cancel: {
+    position: 'absolute',
+    top: -12,
+    right: 5,
+  },
+  sort: {
+    transform: [{scaleX: -1}],
+  },
+});
