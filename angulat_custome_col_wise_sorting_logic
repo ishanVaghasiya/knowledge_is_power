@@ -1,0 +1,110 @@
+---- html like this ---
+<tr class="tablehead">
+          <th *ngFor="let header of tableHeaderList" [class]="header.className" class="cursor-pointer" [id]="header.id">
+            <section class="d-flex align-items-center justify-content-between">
+              <span>{{header.label}}</span>
+              <span class="mx-2" *ngIf="header.sortOrder !== sortingAction.DEFAULT"
+                [class.rotate-180]="header.sortOrder == sortingAction.ASC"><img src="assets/action-image/sort-down.svg"
+                  class="sort-icon"></span>
+            </section>
+          </th>
+        </tr>
+------------------------------
+
+2) header array
+his.tableHeaderList = [
+      {
+        id: SortingList.Action,
+        label: 'ACTIONS',
+        className: 'action',
+        sortOrder: SortingAction.DEFAULT
+      },
+      {
+        id: SortingList.WSL,
+        label: 'WORK SCHEDULE LIBRARY',
+        className: '',
+        sortOrder: SortingAction.DEFAULT
+      },
+      {
+        id: SortingList.WD,
+        label: 'WORKING DAYS',
+        className: '',
+        sortOrder: SortingAction.DEFAULT
+      },
+      {
+        id: SortingList.NOD,
+        label: 'NO. OF DAYS',
+        className: 'no-of-day',
+        sortOrder: SortingAction.DEFAULT
+      },
+      {
+        id: SortingList.DWS,
+        label: 'DAY WEEK STARTS',
+        className: '',
+        sortOrder: SortingAction.DEFAULT
+      },
+      {
+        id: SortingList.TDS,
+        label: 'TIME DAY STARTS',
+        className: '',
+        sortOrder: SortingAction.DEFAULT
+      },
+      {
+        id: SortingList.HW,
+        label: 'HOURS WORKING',
+        className: '',
+        sortOrder: SortingAction.DEFAULT
+      },
+      {
+        id: SortingList.Break,
+        label: 'BREAK',
+        className: '',
+        sortOrder: SortingAction.DEFAULT
+      },
+      {
+        id: SortingList.Deployment,
+        label: 'DEPLOYMENTS',
+        className: 'select-dep',
+        sortOrder: SortingAction.DEFAULT
+      },
+    ]
+
+
+---------------------------------
+3) sorting logic
+// * ----------- Sorting -------------
+  handleSorting(header: any, stopSortingChange: boolean = false) {
+    if (this.availableSorting.includes(header.id)) {
+      switch (header.id) {
+        case SortingList.NOD: {
+          this.sortingService.clearSortOrder(SortingList.NOD, this.tableHeaderList);
+          this.sortingService.changeSortOrder(SortingList.NOD, this.tableHeaderList);
+          this.sortingService.handleAscDescSorting(header, 'numberOfDays', this.allWorkLibrary?.getWorkSchedule);
+          break;
+        }
+        case SortingList.DWS: {
+          this.sortingService.clearSortOrder(SortingList.DWS, this.tableHeaderList);
+          this.sortingService.changeSortOrder(SortingList.DWS, this.tableHeaderList);
+          !stopSortingChange && this.sortingService.handleAscDescSorting(header, 'weekId', this.allWorkLibrary?.getWorkSchedule);
+          break;
+        }
+        case SortingList.TDS: {
+          this.sortingService.clearSortOrder(SortingList.TDS, this.tableHeaderList);
+          this.sortingService.changeSortOrder(SortingList.TDS, this.tableHeaderList);
+          !stopSortingChange && this.sortingService.handleAscDescSorting(header, 'totalMinOfDatStart', this.allWorkLibrary?.getWorkSchedule);
+          break;
+        }
+      }
+    }
+    return null;
+  }
+
+  sortByTDS() {
+    this.sortingService.clearSortOrder(SortingList.DWS, this.tableHeaderList);
+    this.sortingService.changeSortOrder(SortingList.DWS, this.tableHeaderList);
+    // this.sortingService.handleAscDescSorting(header, 'weekId', this.allWorkLibrary?.getWorkSchedule);
+
+  }
+
+ this.availableSorting = [SortingList.NOD, SortingList.DWS, SortingList.TDS]
+
