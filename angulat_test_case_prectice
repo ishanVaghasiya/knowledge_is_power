@@ -1,0 +1,113 @@
+/* tslint:disable:no-unused-variable */
+import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
+import { DebugElement } from '@angular/core';
+
+import { DropDocModalComponent } from './dropDoc-modal.component';
+import { MAT_DIALOG_DATA, MatDialog, MatDialogRef } from '@angular/material/dialog';
+import { of } from 'rxjs'
+import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { IUploadedDocumentDetailModal } from '../../model/uploaded-doc-details';
+import { AppMaterialModule } from 'src/app/app.material.module';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { AuthModule } from '@auth0/auth0-angular';
+import { environment as env } from 'src/environments/environment';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { NgxExtendedPdfViewerModule } from 'ngx-extended-pdf-viewer';
+import { IShareClassesSource, ShareClassesSource } from '../../model/ingestor-tsr-response';
+import { IngestorService } from '../../services/ingestor.service';
+import { ToastrService } from 'ngx-toastr';
+
+describe('DropDocModalComponent', () => {
+  let component: DropDocModalComponent;
+  let fixture: ComponentFixture<DropDocModalComponent>;
+  let dialogRefMock: jasmine.SpyObj<MatDialogRef<DropDocModalComponent>>
+  let ingestorServiceMock: jasmine.SpyObj<IngestorService>
+  let toastrMock: jasmine.SpyObj<ToastrService>;
+
+  const rowMockData: IShareClassesSource = {
+    //any mock data
+  };
+
+  const uploadedDocMockDetailModal: IUploadedDocumentDetailModal = {
+    uploadedDocumentDetails: {
+      //any mock data
+    },
+    file: new File([''], 'example.pdf', { type: 'application/pdf' }),
+    rowData: { ...rowMockData }
+  }
+
+  beforeEach(async(() => {
+    dialogRefMock = jasmine.createSpyObj<MatDialogRef<DropDocModalComponent>>("dialogRefMock", ['close']);
+    ingestorServiceMock = jasmine.createSpyObj<IngestorService>('ingestorServiceTEST', ['getAffectedShareClassFunds']);
+    toastrMock = jasmine.createSpyObj<ToastrService>('toastr', ['success', 'error']);
+    TestBed.configureTestingModule({
+      declarations: [DropDocModalComponent],
+      providers: [
+        { provide: MatDialog, useValue: { open: () => of() } },
+        { provide: MAT_DIALOG_DATA, useValue: uploadedDocMockDetailModal },
+        { provide: MatDialogRef, useValue: dialogRefMock },
+        { provide: ToastrService, useValue: toastrMock },
+        { provide: IngestorService, useValue: ingestorServiceMock },
+      ],
+      imports: [
+        AppMaterialModule,
+        BrowserAnimationsModule,
+        FormsModule,
+        ReactiveFormsModule,
+        NgxExtendedPdfViewerModule,
+        HttpClientTestingModule,
+        AuthModule.forRoot({
+          domain: env.auth.domain,
+          clientId: env.auth.clientId,
+          redirectUri: env.auth.redirectUri
+        }),
+      ]
+    })
+      .compileComponents();
+  }));
+
+  beforeEach(() => {
+    fixture = TestBed.createComponent(DropDocModalComponent);
+    component = fixture.componentInstance;
+    ingestorServiceMock.getAffectedShareClassFunds.and.returnValue(of({}));
+    fixture.detectChanges();
+  });
+
+  it('should create', () => {
+    expect(component).toBeTruthy();
+  });
+
+  it('Form have Proper initial value', () => {
+    let test = component.uploadDocumentForm
+    let test2 = {
+      currentRpDocumentName: 'ANN_MultiStrategyQualityReturnMQRFund.pdf',
+      renameDocument: 'ANN_MultiStrategyQualityReturnMQRFund.pdf',
+      isBookmarked: false,
+    }
+    expect(test.value).toEqual(test2);
+  })
+
+  it('Current RP Doc Name have readonly filed', async () => {
+    let element = fixture.debugElement.query(By.css('#currentRpDocumentName')).nativeElement;
+    const isReadOnly = element.classList.contains('readOnly');
+    expect(isReadOnly).toBeTrue();
+  })
+
+  it('Should pass valid data onSave', async () => {
+    component.onSave();
+    expect(dialogRefMock.close).toHaveBeenCalledWith({
+      event: 'save',
+      data: { ...component.uploadDocumentForm.value }
+    })
+  })
+
+  it('Should call getAffectedShareClassFunds', async () => {
+      fixture.detectChanges()
+      spyOn(component, 'getAffectedShareClassFunds');
+      const button = fixture.debugElement.query(By.css('[data-testid="refresh-btn"]'));
+      const buttonElement: HTMLButtonElement = button.nativeElement
+      buttonElement.dispatchEvent(new Event('click'));
+      expect(component.getAffectedShareClassFunds).toHaveBeenCalled();
+  })
+});
